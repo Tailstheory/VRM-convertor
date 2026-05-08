@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Blender Model Renderer</title>
+    <style>
+        body { font-family: sans-serif; max-width: 800px; margin: 0 auto; padding: 20px; text-align: center; }
+        #preview { margin-top: 20px; max-width: 100%; border: 1px solid #ccc; }
+        .loading { display: none; margin-top: 20px; }
+    </style>
+</head>
+<body>
+    <h1>Upload and Render 3D Model</h1>
+    <p>Supported formats: .obj, .stl, .glb, .gltf, .fbx</p>
+
+    <form id="uploadForm">
+        <input type="file" name="file" id="fileInput" accept=".obj,.stl,.glb,.gltf,.fbx">
+        <button type="submit">Upload and Render</button>
+    </form>
+
+    <div class="loading" id="loading">Rendering... Please wait.</div>
+    <div id="result">
+        <img id="preview" style="display: none;">
+    </div>
+
+    <script>
+        const form = document.getElementById('uploadForm');
+        const loading = document.getElementById('loading');
+        const preview = document.getElementById('preview');
+
+        form.onsubmit = async (e) => {
+            e.preventDefault();
+            const fileInput = document.getElementById('fileInput');
+            if (!fileInput.files[0]) return alert('Please select a file');
+
+            const formData = new FormData();
+            formData.append('file', fileInput.files[0]);
+
+            loading.style.display = 'block';
+            preview.style.display = 'none';
+
+            try {
+                const response = await fetch('/upload', {
+                    method: 'POST',
+                    body: formData
+                });
+                const data = await response.json();
+
+                if (response.ok) {
+                    preview.src = data.render_url;
+                    preview.style.display = 'block';
+                } else {
+                    alert('Error: ' + data.error);
+                }
+            } catch (err) {
+                alert('Upload failed: ' + err.message);
+            } finally {
+                loading.style.display = 'none';
+            }
+        };
+    </script>
+</body>
+</html>
